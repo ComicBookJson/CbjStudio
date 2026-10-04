@@ -30,7 +30,7 @@ public sealed class ComicImportService
 
         var entries = new List<(string Name, byte[] Data)>();
         using var archiveStream = new MemoryStream(bytes, writable: false);
-        using var archive = ArchiveFactory.Open(archiveStream);
+        using var archive = ArchiveFactory.OpenArchive(archiveStream);
 
         foreach (var entry in archive.Entries.Where(e => !e.IsDirectory))
         {

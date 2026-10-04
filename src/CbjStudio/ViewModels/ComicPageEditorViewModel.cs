@@ -20,7 +20,7 @@ public partial class ComicPageEditorViewModel : ObservableObject
         this.fileName = fileName;
         this.preview = preview;
         doublePage = model.DoublePage ?? false;
-        pageType = model.Type?.FirstOrDefault()?.ToString() ?? "Story";
+        pageType = model.Type?.FirstOrDefault().ToString() ?? "Story";
     }
 
     partial void OnDoublePageChanged(bool value) => Model.DoublePage = value;
