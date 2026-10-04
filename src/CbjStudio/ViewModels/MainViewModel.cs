@@ -65,8 +65,14 @@ public partial class MainViewModel : ViewModelBase
             for (var i = 0; i < result.Pages.Count; i++)
             {
                 var page = result.Comic.Pages![i];
-                var image = ImageSource.FromStream(() => new MemoryStream(result.Pages[i].Data, writable: false));
-                Pages.Add(new ComicPageEditorViewModel(page, result.Pages[i].Name, image, i));
+                var pageData = result.Pages[i].Data;
+                var pageName = result.Pages[i].Name;
+
+                // ImageSource.FromStream is lazy. Capture the page data itself,
+                // rather than the loop variable, so every preview keeps pointing
+                // to the correct image after the import loop finishes.
+                var image = ImageSource.FromStream(() => new MemoryStream(pageData, writable: false));
+                Pages.Add(new ComicPageEditorViewModel(page, pageName, image, i));
             }
 
             CurrentPageIndex = Pages.Count > 0 ? 0 : -1;
