@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CbjSdk/CbjSdk.csproj" />
+    <Project Path="src/CbjStudio/CbjStudio.csproj" />
+  </Folder>
+</Solution>
