@@ -52,7 +52,7 @@ public partial class MainViewModel : ViewModelBase
             if (file is null) return;
 
             Status = "Importando comic book...";
-            var result = await importService.ImportAsync(file);
+            var result = await ComicImportService.ImportAsync(file);
 
             Comic = result.Comic;
             SourceName = result.SourceName;
@@ -83,7 +83,7 @@ public partial class MainViewModel : ViewModelBase
         catch (Exception ex)
         {
             Status = $"Falha ao importar: {ex.Message}";
-            await Shell.Current.DisplayAlert("Importação", ex.Message, "OK");
+            await Shell.Current.DisplayAlertAsync("Importação", ex.Message, "OK");
         }
     }
 
@@ -107,12 +107,12 @@ public partial class MainViewModel : ViewModelBase
                 throw result.Exception ?? new IOException("Não foi possível salvar o arquivo CBJ.");
 
             Status = $"CBJ salvo em {result.FilePath}";
-            await Shell.Current.DisplayAlert("Exportação", "Arquivo CBJ criado com sucesso.", "OK");
+            await Shell.Current.DisplayAlertAsync("Exportação", "Arquivo CBJ criado com sucesso.", "OK");
         }
         catch (Exception ex)
         {
             Status = $"Falha ao exportar: {ex.Message}";
-            await Shell.Current.DisplayAlert("Exportação", ex.Message, "OK");
+            await Shell.Current.DisplayAlertAsync("Exportação", ex.Message, "OK");
         }
     }
 

@@ -23,53 +23,56 @@ public sealed class ComicImportService
         ".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp"
     };
 
-    public async Task<ComicImportResult> ImportAsync(FileResult file, CancellationToken cancellationToken = default)
+    public static async Task<ComicImportResult> ImportAsync(FileResult file, CancellationToken cancellationToken = default)
     {
-        await using var input = await file.OpenReadAsync();
-        var bytes = await ReadAllAsync(input, cancellationToken);
-
-        var entries = new List<(string Name, byte[] Data)>();
-        using var archiveStream = new MemoryStream(bytes, writable: false);
-        using var archive = ArchiveFactory.OpenArchive(archiveStream);
-
-        foreach (var entry in archive.Entries.Where(e => !e.IsDirectory))
+        return await Task.Run(async () =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            await using var entryStream = new MemoryStream();
-            entry.WriteTo(entryStream);
-            entries.Add((entry.Key, entryStream.ToArray()));
-        }
+            await using var input = await file.OpenReadAsync();
+            var bytes = await ReadAllAsync(input, cancellationToken);
 
-        var comicInfoEntry = entries.FirstOrDefault(e =>
-            string.Equals(Path.GetFileName(e.Name), "ComicInfo.xml", StringComparison.OrdinalIgnoreCase));
+            var entries = new List<(string Name, byte[] Data)>();
+            using var archiveStream = new MemoryStream(bytes, writable: false);
+            using var archive = ArchiveFactory.OpenArchive(archiveStream);
 
-        var comic = comicInfoEntry.Data is { Length: > 0 }
-            ? ParseComicInfo(comicInfoEntry.Data)
-            : CreateDefaultComic();
+            foreach (var entry in archive.Entries.Where(e => !e.IsDirectory))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await using var entryStream = new MemoryStream();
+                entry.WriteTo(entryStream);
+                entries.Add((entry.Key, entryStream.ToArray()));
+            }
 
-        var pages = entries
-            .Where(e => ImageExtensions.Contains(Path.GetExtension(e.Name)))
-            .OrderBy(e => e.Name, NaturalStringComparer.Instance)
-            .Select(e => new ComicPageSource(Path.GetFileName(e.Name), e.Data))
-            .ToList();
+            var comicInfoEntry = entries.FirstOrDefault(e =>
+                string.Equals(Path.GetFileName(e.Name), "ComicInfo.xml", StringComparison.OrdinalIgnoreCase));
 
-        comic.PageCount = pages.Count;
-        comic.Pages = pages.Select((p, index) => new PageElement
-        {
-            Image = index,
-            ImageBase64 = Convert.ToBase64String(p.Data),
-            ImageSize = p.Data.LongLength,
-            DoublePage = false,
-            Type = [TypeElement.Story]
-        }).ToArray();
+            var comic = comicInfoEntry.Data is { Length: > 0 }
+                ? ParseComicInfo(comicInfoEntry.Data)
+                : CreateDefaultComic();
 
-        return new ComicImportResult
-        {
-            Comic = comic,
-            Pages = pages,
-            HasComicInfo = comicInfoEntry.Data is { Length: > 0 },
-            SourceName = file.FileName
-        };
+            var pages = entries
+                .Where(e => ImageExtensions.Contains(Path.GetExtension(e.Name)))
+                .OrderBy(e => e.Name, NaturalStringComparer.Instance)
+                .Select(e => new ComicPageSource(Path.GetFileName(e.Name), e.Data))
+                .ToList();
+
+            comic.PageCount = pages.Count;
+            comic.Pages = pages.Select((p, index) => new PageElement
+            {
+                Image = index,
+                ImageBase64 = Convert.ToBase64String(p.Data),
+                ImageSize = p.Data.LongLength,
+                DoublePage = false,
+                Type = [TypeElement.Story]
+            }).ToArray();
+
+            return new ComicImportResult
+            {
+                Comic = comic,
+                Pages = pages,
+                HasComicInfo = comicInfoEntry.Data is { Length: > 0 },
+                SourceName = file.FileName
+            };
+        });
     }
 
     public async Task<byte[]> CreateCbjAsync(ComicBoojJson comic, CancellationToken cancellationToken = default)
