@@ -1,27 +1,89 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:CbjStudio.ViewModels"
              x:Class="CbjStudio.Views.MainPage"
              x:DataType="vm:MainViewModel"
              Title="{Binding Title}">
-
-    <ScrollView>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="20" RowSpacing="14">
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+            <VerticalStackLayout>
+                <Label Text="{Binding Title}" FontSize="28" FontAttributes="Bold" />
+                <Label Text="{Binding Status}" FontSize="13" Opacity="0.7" />
+            </VerticalStackLayout>
+            <Button Grid.Column="1" Text="Novo" Command="{Binding CreateNewComicCommand}" />
+            <Button Grid.Column="2" Text="Importar CBZ/CBR" Command="{Binding ImportComicCommand}" />
         </Grid>
-    </ScrollView>
 
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+            <Label Text="Fonte:" VerticalOptions="Center" />
+            <Label Grid.Column="1" Text="{Binding SourceName}" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+            <Button Grid.Column="2" Text="Exportar .cbj" Command="{Binding ExportComicCommand}" />
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,1.15*" ColumnSpacing="18">
+            <Border Padding="14" StrokeThickness="1">
+                <ScrollView>
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Metadados" FontSize="22" FontAttributes="Bold" />
+                        <Label Text="{Binding HasComicInfo, StringFormat='ComicInfo.xml encontrado: {0}'}" FontSize="12" Opacity="0.7" />
+                        <CollectionView ItemsSource="{Binding Metadata}" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="vm:MetadataFieldViewModel">
+                                    <Grid ColumnDefinitions="180,*" ColumnSpacing="10" Padding="0,4">
+                                        <Label Text="{Binding Label}" VerticalOptions="Center" />
+                                        <Picker Grid.Column="1"
+                                                ItemsSource="{Binding Options}"
+                                                SelectedItem="{Binding Value, Mode=TwoWay}"
+                                                IsVisible="{Binding IsChoice}" />
+                                        <Entry Grid.Column="1"
+                                               Text="{Binding Value, Mode=TwoWay}"
+                                               IsVisible="{Binding IsChoice, Converter={StaticResource InverseBoolConverter}}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Border>
+
+            <Border Grid.Column="1" Padding="14" StrokeThickness="1">
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Button Text="◀" Command="{Binding PreviousPageCommand}" />
+                        <Label Grid.Column="1"
+                               Text="{Binding CurrentPageIndex, StringFormat='Página {0}'}"
+                               HorizontalTextAlignment="Center"
+                               VerticalTextAlignment="Center" />
+                        <Button Grid.Column="2" Text="▶" Command="{Binding NextPageCommand}" />
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Image Source="{Binding CurrentPage.Preview}" Aspect="AspectFit" />
+                        <Label Text="Nenhuma página selecionada"
+                               IsVisible="{Binding CurrentPage, Converter={StaticResource NullToBoolConverter}}"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Grid>
+
+                    <VerticalStackLayout Grid.Row="2" Spacing="8">
+                        <Label Text="{Binding CurrentPage.FileName}" FontAttributes="Bold" />
+                        <HorizontalStackLayout Spacing="12">
+                            <CheckBox IsChecked="{Binding CurrentPage.DoublePage, Mode=TwoWay}" />
+                            <Label Text="DoublePage" VerticalOptions="Center" />
+                            <Picker Title="Tipo da página"
+                                    ItemsSource="{Binding CurrentPageTypeOptions}"
+                                    SelectedItem="{Binding CurrentPage.PageType, Mode=TwoWay}"
+                                    WidthRequest="180" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="3" ColumnDefinitions="*,Auto">
+            <Label Text="{Binding Pages.Count, StringFormat='{0} páginas importadas'}" VerticalOptions="Center" />
+            <Button Grid.Column="1" Text="Exportar CBJ" Command="{Binding ExportComicCommand}" />
+        </Grid>
+    </Grid>
 </ContentPage>
