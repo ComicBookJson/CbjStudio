@@ -1,23 +1,16 @@
-﻿namespace CbjStudio.Views;
+using CbjStudio.ViewModels;
+
+namespace CbjStudio.Views;
 
 public partial class MainPage : ContentPage
 {
-	int count = 0;
+    public MainPage()
+    {
+        InitializeComponent();
 
-	public MainPage()
-	{
-		InitializeComponent();
-	}
-
-	private void OnCounterClicked(object? sender, EventArgs e)
-	{
-		count++;
-
-		if (count == 1)
-			CounterBtn.Text = $"Clicked {count} time";
-		else
-			CounterBtn.Text = $"Clicked {count} times";
-
-		SemanticScreenReader.Announce(CounterBtn.Text);
-	}
+        // Shell creates MainPage from the ShellContent DataTemplate. Explicitly
+        // assign the view model so compiled bindings and generated commands are
+        // available to every button on the page.
+        BindingContext = new MainViewModel();
+    }
 }
